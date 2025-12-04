@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { GitBranch, GitPullRequest, AlertCircle } from 'lucide-react'
 import { useDashboardStore } from '../stores/dashboardStore'
 import { fetchGitHubActivity, invalidateGitHubActivityCache, type GitHubActivity } from '../utils/githubApi'
@@ -29,42 +29,46 @@ const GitHubWidget = () => {
     }
   }, [isModalOpen, token, username])
 
-  const loadActivity = async (skipCache: boolean = false) => {
-    if (!token || !username) {
-      setState('idle')
-      return
-    }
-
-    setState('loading')
-    setErrorMessage('')
-
-    try {
-      const data = await fetchGitHubActivity(
-        { token, username },
-        selectedRepos,
-        skipCache
-      )
-      setActivity(data)
-      setState('success')
-    } catch (error) {
-      const message = error instanceof Error ? error.message : '데이터를 불러올 수 없습니다.'
-      setErrorMessage(message)
-
-      if (message.includes('Rate Limit') || message.includes('403') || message.includes('429')) {
-        setState('rate-limit')
-      } else {
-        setState('error')
+  const loadActivity = useCallback(
+    async (skipCache: boolean = false) => {
+      if (!token || !username) {
+        setState('idle')
+        return
       }
-    }
-  }
+
+      setState('loading')
+      setErrorMessage('')
+
+      try {
+        const data = await fetchGitHubActivity(
+          { token, username },
+          selectedRepos,
+          skipCache
+        )
+        setActivity(data)
+        setState('success')
+      } catch (error) {
+        const message = error instanceof Error ? error.message : '데이터를 불러올 수 없습니다.'
+        setErrorMessage(message)
+
+        if (message.includes('Rate Limit') || message.includes('403') || message.includes('429')) {
+          setState('rate-limit')
+        } else {
+          setState('error')
+        }
+      }
+    },
+    [token, username, selectedRepos]
+  )
 
   // 설정 변경 감지 및 자동 로딩
   useEffect(() => {
     if (token && username) {
+      const selectedReposKey = selectedRepos.join(',')
       const currentConfig = {
         token,
         username,
-        repos: selectedRepos.join(','),
+        repos: selectedReposKey,
       }
       const prevConfig = prevConfigRef.current
 
@@ -85,7 +89,7 @@ const GitHubWidget = () => {
         loadActivity(false)
       }
     }
-  }, [token, username, selectedRepos.join(',')])
+  }, [token, username, selectedRepos, loadActivity])
 
   const handleSettingsClick = () => {
     setIsModalOpen(true)

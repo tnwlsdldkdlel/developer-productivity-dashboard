@@ -16,6 +16,19 @@ export interface Commit {
   count: number
 }
 
+// GitHub REST API 커밋 응답 타입
+interface GitHubCommitResponse {
+  sha: string
+  commit: {
+    author?: {
+      date: string
+    }
+    committer?: {
+      date: string
+    }
+  }
+}
+
 export interface PullRequest {
   title: string
   url: string
@@ -99,7 +112,7 @@ async function fetchTodayCommitsFromRepo(
     // 커밋 날짜는 author.date 또는 committer.date를 사용
     const todayDateStr = todayUTC.toISOString().split('T')[0] // YYYY-MM-DD 형식
     
-    const todayCommits = commits.filter((commit: any) => {
+    const todayCommits = commits.filter((commit: GitHubCommitResponse) => {
       const commitDate = commit.commit?.author?.date || commit.commit?.committer?.date
       if (!commitDate) return false
       
@@ -136,7 +149,7 @@ async function fetchTodayCommitsFromRepo(
         
         // 오늘 날짜로 필터링
         const todayDateStr = todayUTC.toISOString().split('T')[0]
-        const nextTodayCommits = nextCommits.filter((commit: any) => {
+        const nextTodayCommits = nextCommits.filter((commit: GitHubCommitResponse) => {
           const commitDate = commit.commit?.author?.date || commit.commit?.committer?.date
           if (!commitDate) return false
           const commitDateStr = new Date(commitDate).toISOString().split('T')[0]
@@ -517,28 +530,24 @@ export async function fetchUserRepositories(
     }
   }
 
-  try {
-    const result = await retryWithBackoff(
-      () =>
-        graphqlQuery<RepositoriesGraphQLData>(
-          query,
-          { username: config.username || 'octocat' },
-          config.token
-        )
-    )
+  const result = await retryWithBackoff(
+    () =>
+      graphqlQuery<RepositoriesGraphQLData>(
+        query,
+        { username: config.username || 'octocat' },
+        config.token
+      )
+  )
 
-    const repos =
-      result.data.user?.repositories?.nodes?.map((repo) => ({
-        name: repo.name,
-        fullName: repo.nameWithOwner,
-      })) || []
+  const repos =
+    result.data.user?.repositories?.nodes?.map((repo) => ({
+      name: repo.name,
+      fullName: repo.nameWithOwner,
+    })) || []
 
-    // 캐시에 저장 (10분)
-    cache.set(cacheKey, repos, 10 * 60 * 1000)
+  // 캐시에 저장 (10분)
+  cache.set(cacheKey, repos, 10 * 60 * 1000)
 
-    return repos
-  } catch (error) {
-    throw error
-  }
+  return repos
 }
 
