@@ -23,7 +23,7 @@ expect.extend({
     return {
       message: () => {
         const violations = results.violations
-          .map((v) => `- ${v.id}: ${v.help}`)
+          .map((v: { id: string; help: string }) => `- ${v.id}: ${v.help}`)
           .join('\n')
         return `접근성 위반 발견:\n${violations}`
       },
