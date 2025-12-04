@@ -10,7 +10,7 @@ afterEach(() => {
 // jest-axe를 vitest와 함께 사용하기 위한 설정
 expect.extend({
   async toHaveNoViolations(received: HTMLElement) {
-    const { default: axe } = await import('jest-axe')
+    const { axe } = await import('jest-axe')
     const results = await axe(received)
     
     if (results.violations.length === 0) {
