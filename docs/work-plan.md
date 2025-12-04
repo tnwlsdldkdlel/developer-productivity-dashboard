@@ -69,45 +69,72 @@
 
 ---
 
-## Phase 3: GitHub 활동 위젯 구현 (복잡한 위젯으로 패턴 확장)
+## Phase 3: GitHub 활동 위젯 구현 ✅ (완료)
 
 ### 3.1 API 통합 및 유틸리티
-- [ ] **GitHub API 통합**
-  - GitHub OAuth 인증 설정 (초기에는 Personal Access Token)
-  - GraphQL 쿼리 작성 (커밋, PR, Issue)
-  - Repository 필터링 기능
+- [x] **GitHub API 통합**
+  - Personal Access Token 기반 인증 (`src/utils/githubApi.ts`)
+  - GraphQL 쿼리 작성 (커밋, PR, Issue) - `contributionsCollection`, `pullRequests`, `issues` 쿼리
+  - Repository 필터링 기능 (클라이언트 측 필터링)
 
-- [ ] **API 유틸리티 개발** (필요시)
-  - 지수 백오프 재시도 로직
-  - Rate Limit 처리
-  - 에러 핸들링 헬퍼
-  - 클라이언트 측 캐싱 메커니즘
+- [x] **API 유틸리티 개발**
+  - 지수 백오프 재시도 로직 (`src/utils/api.ts` - `retryWithBackoff`)
+  - Rate Limit 처리 (`extractRateLimit`, `getRateLimitMessage`)
+  - 에러 핸들링 헬퍼 (`getErrorMessage`)
+  - 클라이언트 측 캐싱 메커니즘 (`src/utils/cache.ts` - 5분 TTL)
 
 ### 3.2 GitHub 위젯 구현
-- [ ] **UI 구현**
-  - 오늘/최근 7일 커밋 수 표시
-  - PR 목록 (제목, 상태, 링크)
-  - Issue 목록 (제목, 상태, 링크)
-  - Repository 선택 UI
+- [x] **UI 구현** (`src/widgets/GitHubWidget.tsx`)
+  - 오늘/최근 7일 커밋 수 표시 (통계 카드)
+  - PR 목록 (제목, 상태, 링크, Repository)
+  - Issue 목록 (제목, 상태, 링크, Repository)
+  - 설정 UI (Personal Access Token 및 사용자명 입력)
 
-- [ ] **에러 처리 및 로딩 상태**
-  - 에러 상태 UI (공통 패턴 발견)
-  - 로딩 상태 UI (스켈레톤 UI 필요성 확인)
-  - Rate Limit 처리
-  - 재시도 로직
+- [x] **에러 처리 및 로딩 상태**
+  - 에러 상태 UI (`src/components/ErrorState.tsx` - 공통 컴포넌트)
+  - 로딩 상태 UI (`src/components/Skeleton.tsx` - 스켈레톤 UI)
+  - Rate Limit 처리 (별도 상태 및 메시지)
+  - 재시도 로직 (에러 상태에서 "다시 시도" 버튼)
 
-- [ ] **최적화**
-  - 캐싱 메커니즘
-  - GraphQL 쿼리 최적화
+- [x] **최적화**
+  - 캐싱 메커니즘 (5분 TTL로 API 요청 최소화)
+  - GraphQL 쿼리 최적화 (한 번의 요청으로 모든 데이터 가져오기)
 
-- [ ] **테스트**
-  - API 모킹 (MSW)
-  - 단위 테스트
-  - 에러 시나리오 테스트
+- [x] **테스트**
+  - 단위 테스트 (`src/widgets/GitHubWidget.test.tsx` - 6개 테스트 통과)
+  - 접근성 테스트 (`src/widgets/GitHubWidget.accessibility.test.tsx`)
+  - 에러 시나리오 테스트 (일반 에러, Rate Limit 에러)
 
-**예상 소요 시간**: 3-4일
+**예상 소요 시간**: 3-4일 (실제 완료: 2025-12-04)
 
 **목표**: 복잡한 위젯을 구현하면서 에러 처리, 로딩 상태 등 공통 패턴 발견
+
+### 완료된 Phase 3 요약
+- **구현 파일**: 
+  - `src/utils/api.ts` - API 유틸리티 (재시도, Rate Limit 처리)
+  - `src/utils/cache.ts` - 클라이언트 측 캐싱
+  - `src/utils/githubApi.ts` - GitHub GraphQL API 통합
+  - `src/stores/dashboardStore.ts` - 대시보드 설정 관리 (위젯 설정, 레이아웃)
+  - `src/components/Skeleton.tsx` - 스켈레톤 UI 컴포넌트
+  - `src/components/ErrorState.tsx` - 에러 상태 컴포넌트
+  - `src/widgets/GitHubWidget.tsx` - GitHub 활동 위젯
+  - `src/widgets/GitHubWidget.test.tsx` - 단위 테스트
+  - `src/widgets/GitHubWidget.accessibility.test.tsx` - 접근성 테스트
+- **주요 기능**: 
+  - GitHub GraphQL API 통합 (커밋, PR, Issue)
+  - Personal Access Token 기반 인증
+  - Repository 필터링
+  - 지수 백오프 재시도 (최대 3회, 2초/4초/8초)
+  - Rate Limit 처리 및 경고
+  - 클라이언트 측 캐싱 (5분 TTL)
+- **테스트 결과**: 모든 단위 및 접근성 테스트 통과
+- **발견된 공통 패턴**:
+  1. **에러 처리 패턴**: 모든 위젯이 공통 에러 상태 UI가 필요함. `ErrorState.tsx`로 추출.
+  2. **로딩 상태 패턴**: 모든 위젯이 스켈레톤 UI가 필요함. `Skeleton.tsx`로 추출.
+  3. **API 통합 패턴**: GraphQL을 사용하여 여러 데이터를 한 번에 가져오는 것이 효율적.
+  4. **재시도 패턴**: 지수 백오프를 사용한 재시도 로직이 API 안정성 향상에 효과적.
+  5. **캐싱 패턴**: 클라이언트 측 캐싱으로 API 요청 최소화 및 Rate Limit 관리.
+  6. **설정 관리 패턴**: Zustand persist로 위젯별 설정을 Local Storage에 저장.
 
 ---
 

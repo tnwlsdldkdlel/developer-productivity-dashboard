@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import TodoWidget from './TodoWidget'
-import { useTodoStore } from '../stores/todoStore'
+import TodoWidget from '../../widgets/TodoWidget'
+import { useTodoStore } from '../../stores/todoStore'
 
 describe('TodoWidget', () => {
   beforeEach(() => {
