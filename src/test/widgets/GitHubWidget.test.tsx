@@ -6,7 +6,7 @@ import { useDashboardStore } from '../../stores/dashboardStore'
 import * as githubApi from '../../utils/githubApi'
 
 // MSW 모킹 대신 직접 모킹
-vi.mock('../utils/githubApi')
+vi.mock('../../utils/githubApi')
 
 describe('GitHubWidget', () => {
   beforeEach(() => {
