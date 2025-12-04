@@ -129,6 +129,47 @@ git commit -m "feat: GitHub Actions CI/CD 파이프라인 설정
 git push origin <branch-name>
 ```
 
+### 푸시 후 필수 확인 사항
+
+**⚠️ 중요: 푸시 후 반드시 GitHub Actions 상태를 확인하고, 오류가 있으면 즉시 수정해야 합니다.**
+
+1. **GitHub Actions 상태 확인**
+   - GitHub 저장소의 "Actions" 탭에서 워크플로우 실행 상태 확인
+   - 모든 워크플로우가 성공(✅) 상태인지 확인
+   - 실패(❌) 또는 취소(⏹️) 상태가 있으면 즉시 확인
+
+2. **오류 발생 시 즉시 대응**
+   - 오류가 발생한 워크플로우 클릭하여 상세 로그 확인
+   - 오류 원인 파악 및 로컬에서 재현
+   - 수정 후 즉시 커밋 및 푸시
+   - 다시 GitHub Actions 상태 확인
+
+3. **체크리스트**
+   - [ ] 푸시 완료 후 GitHub Actions 탭 확인
+   - [ ] 모든 워크플로우가 성공 상태인지 확인
+   - [ ] 오류가 있으면 로그 확인 및 원인 파악
+   - [ ] 오류 수정 후 재커밋 및 재푸시
+   - [ ] 재푸시 후 다시 GitHub Actions 상태 확인
+
+4. **오류 수정 예시**
+   ```bash
+   # 오류 확인 후 수정
+   # ... 코드 수정 ...
+   
+   # 수정사항 커밋
+   git add .
+   git commit -m "fix: GitHub Actions CI 오류 수정
+   
+   - ESLint 오류 수정
+   - TypeScript 타입 오류 해결
+   - 테스트 실패 케이스 수정"
+   
+   # 재푸시
+   git push origin <branch-name>
+   
+   # GitHub Actions 상태 재확인
+   ```
+
 ## 브랜치 전략
 
 - `main`: 프로덕션 배포용 브랜치
