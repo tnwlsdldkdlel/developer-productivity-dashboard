@@ -16,6 +16,11 @@ declare module 'jest-axe' {
     inapplicable?: Violation[]
   }
 
+  export function axe(
+    container: HTMLElement,
+    options?: Record<string, unknown>
+  ): Promise<AxeResults>
+
   export default function axe(
     container: HTMLElement,
     options?: Record<string, unknown>
