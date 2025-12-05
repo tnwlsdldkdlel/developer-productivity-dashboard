@@ -106,12 +106,23 @@ async function fetchCommitsFromRepo(
       }
       
       // 날짜 필터링
-      const filteredCommits = repoCommits
-        .filter((commit: any) => {
+      interface GitHubCommitResponse {
+        sha: string
+        html_url: string
+        commit: {
+          message: string
+          author: {
+            date: string
+          }
+        }
+      }
+      
+      const filteredCommits = (repoCommits as GitHubCommitResponse[])
+        .filter((commit) => {
           const commitDate = new Date(commit.commit.author.date)
           return commitDate >= startDate && commitDate < endDate
         })
-        .map((commit: any) => ({
+        .map((commit) => ({
           message: commit.commit.message,
           url: commit.html_url,
           sha: commit.sha.substring(0, 7),
