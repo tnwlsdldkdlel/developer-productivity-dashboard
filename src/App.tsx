@@ -1,5 +1,7 @@
 import TodoWidget from './widgets/TodoWidget'
 import GitHubWidget from './widgets/GitHubWidget'
+import TechNewsWidget from './widgets/TechNewsWidget'
+import StackOverflowWidget from './widgets/StackOverflowWidget'
 import ErrorBoundary from './components/ErrorBoundary'
 
 function App() {
@@ -24,6 +26,16 @@ function App() {
           <div className="h-96">
             <ErrorBoundary widgetName="오늘 할 일">
               <TodoWidget />
+            </ErrorBoundary>
+          </div>
+          <div className="h-96">
+            <ErrorBoundary widgetName="기술 뉴스">
+              <TechNewsWidget />
+            </ErrorBoundary>
+          </div>
+          <div className="h-96">
+            <ErrorBoundary widgetName="Stack Overflow">
+              <StackOverflowWidget />
             </ErrorBoundary>
           </div>
         </div>
