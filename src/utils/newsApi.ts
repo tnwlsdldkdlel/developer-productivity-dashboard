@@ -36,7 +36,7 @@ async function fetchDevToArticles(keywords: string[]): Promise<NewsArticle[]> {
 
   // 여러 키워드에 대해 병렬로 조회
   const keywordPromises = keywords.map(async (keyword) => {
-    const url = `${DEV_TO_API_ENDPOINT}?tag=${encodeURIComponent(keyword)}&per_page=10&top=7`
+    const url = `${DEV_TO_API_ENDPOINT}?tag=${encodeURIComponent(keyword)}&per_page=10`
     
     try {
       const response = await retryWithBackoff(
