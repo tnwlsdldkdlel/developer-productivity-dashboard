@@ -4,7 +4,7 @@
  */
 
 import { ReactNode, useMemo } from 'react'
-import { getContrastColor, checkBackgroundBrightness, getContrastRatio } from '../utils/colorUtils'
+import { getContrastColor, getContrastRatio } from '../utils/colorUtils'
 
 interface AutoContrastCardProps {
   backgroundColor?: string
@@ -32,12 +32,6 @@ const AutoContrastCard = ({
     if (!backgroundColor) return undefined
     return getContrastColor(backgroundColor, lightText, darkText)
   }, [backgroundColor, lightText, darkText])
-
-  // 배경 밝기 확인
-  const brightnessCheck = useMemo(() => {
-    if (!backgroundColor) return null
-    return checkBackgroundBrightness(backgroundColor)
-  }, [backgroundColor])
 
   // 대비 비율 확인
   const contrastRatio = useMemo(() => {
