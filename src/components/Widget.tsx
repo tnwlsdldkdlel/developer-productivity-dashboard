@@ -19,7 +19,7 @@ interface WidgetProps {
 const Widget = ({ title, children, onSettingsClick, className = '' }: WidgetProps) => {
   return (
     <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 h-full flex flex-col ${className}`}>
-      <div className="flex items-center justify-between mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
+      <div className="flex items-center justify-between mb-4 border-b border-gray-200 dark:border-gray-700 pb-2 widget-drag-handle cursor-move">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{title}</h2>
         {onSettingsClick && (
           <button

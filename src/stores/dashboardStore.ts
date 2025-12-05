@@ -37,6 +37,7 @@ interface DashboardState {
 
   // 액션
   updateLayout: (breakpoint: 'lg' | 'md' | 'sm' | 'xs', layout: LayoutItem[]) => void
+  resetLayouts: () => void
   updateGitHubConfig: (config: Partial<GitHubWidgetConfig>) => void
   updateTechNewsConfig: (config: Partial<TechNewsWidgetConfig>) => void
   updateStackOverflowConfig: (config: Partial<StackOverflowWidgetConfig>) => void
@@ -44,28 +45,28 @@ interface DashboardState {
 
 const defaultLayouts = {
   lg: [
-    { i: 'github', x: 0, y: 0, w: 6, h: 4, minW: 4, minH: 3 },
-    { i: 'todo', x: 6, y: 0, w: 6, h: 4, minW: 4, minH: 3 },
-    { i: 'tech-news', x: 0, y: 4, w: 6, h: 4, minW: 4, minH: 3 },
-    { i: 'stackoverflow', x: 6, y: 4, w: 6, h: 4, minW: 4, minH: 3 },
+    { i: 'github', x: 0, y: 0, w: 6, h: 5, minW: 4, minH: 4 },
+    { i: 'todo', x: 6, y: 0, w: 6, h: 5, minW: 4, minH: 4 },
+    { i: 'tech-news', x: 0, y: 5, w: 6, h: 5, minW: 4, minH: 4 },
+    { i: 'stackoverflow', x: 6, y: 5, w: 6, h: 5, minW: 4, minH: 4 },
   ],
   md: [
-    { i: 'github', x: 0, y: 0, w: 6, h: 4, minW: 4, minH: 3 },
-    { i: 'todo', x: 6, y: 0, w: 6, h: 4, minW: 4, minH: 3 },
-    { i: 'tech-news', x: 0, y: 4, w: 6, h: 4, minW: 4, minH: 3 },
-    { i: 'stackoverflow', x: 6, y: 4, w: 6, h: 4, minW: 4, minH: 3 },
+    { i: 'github', x: 0, y: 0, w: 6, h: 5, minW: 4, minH: 4 },
+    { i: 'todo', x: 6, y: 0, w: 6, h: 5, minW: 4, minH: 4 },
+    { i: 'tech-news', x: 0, y: 5, w: 6, h: 5, minW: 4, minH: 4 },
+    { i: 'stackoverflow', x: 6, y: 5, w: 6, h: 5, minW: 4, minH: 4 },
   ],
   sm: [
-    { i: 'github', x: 0, y: 0, w: 12, h: 4, minW: 4, minH: 3 },
-    { i: 'todo', x: 0, y: 4, w: 12, h: 4, minW: 4, minH: 3 },
-    { i: 'tech-news', x: 0, y: 8, w: 12, h: 4, minW: 4, minH: 3 },
-    { i: 'stackoverflow', x: 0, y: 12, w: 12, h: 4, minW: 4, minH: 3 },
+    { i: 'github', x: 0, y: 0, w: 12, h: 5, minW: 4, minH: 4 },
+    { i: 'todo', x: 0, y: 5, w: 12, h: 5, minW: 4, minH: 4 },
+    { i: 'tech-news', x: 0, y: 10, w: 12, h: 5, minW: 4, minH: 4 },
+    { i: 'stackoverflow', x: 0, y: 15, w: 12, h: 5, minW: 4, minH: 4 },
   ],
   xs: [
-    { i: 'github', x: 0, y: 0, w: 12, h: 4, minW: 4, minH: 3 },
-    { i: 'todo', x: 0, y: 4, w: 12, h: 4, minW: 4, minH: 3 },
-    { i: 'tech-news', x: 0, y: 8, w: 12, h: 4, minW: 4, minH: 3 },
-    { i: 'stackoverflow', x: 0, y: 12, w: 12, h: 4, minW: 4, minH: 3 },
+    { i: 'github', x: 0, y: 0, w: 12, h: 5, minW: 4, minH: 4 },
+    { i: 'todo', x: 0, y: 5, w: 12, h: 5, minW: 4, minH: 4 },
+    { i: 'tech-news', x: 0, y: 10, w: 12, h: 5, minW: 4, minH: 4 },
+    { i: 'stackoverflow', x: 0, y: 15, w: 12, h: 5, minW: 4, minH: 4 },
   ],
 }
 
@@ -92,6 +93,10 @@ export const useDashboardStore = create<DashboardState>()(
             ...state.layouts,
             [breakpoint]: layout,
           },
+        })),
+      resetLayouts: () =>
+        set(() => ({
+          layouts: defaultLayouts,
         })),
       updateGitHubConfig: (config) =>
         set((state) => ({
