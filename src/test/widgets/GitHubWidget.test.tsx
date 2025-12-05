@@ -74,6 +74,7 @@ describe('GitHubWidget', () => {
             resolve({
               todayCommits: 5,
               weekCommits: 20,
+              commits: [],
               pullRequests: [],
               issues: [],
             })
@@ -108,6 +109,7 @@ describe('GitHubWidget', () => {
     const mockActivity = {
       todayCommits: 5,
       weekCommits: 20,
+      commits: [],
       pullRequests: [
         {
           title: 'Test PR',

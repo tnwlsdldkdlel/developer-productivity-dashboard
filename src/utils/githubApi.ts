@@ -12,8 +12,11 @@ export interface GitHubConfig {
 }
 
 export interface Commit {
+  message: string
+  url: string
+  sha: string
   date: string
-  count: number
+  repository: string
 }
 
 export interface PullRequest {
@@ -35,6 +38,7 @@ export interface Issue {
 export interface GitHubActivity {
   todayCommits: number
   weekCommits: number
+  commits: Commit[]
   pullRequests: PullRequest[]
   issues: Issue[]
   rateLimit?: {
@@ -56,21 +60,107 @@ interface GraphQLResponse<T> {
 }
 
 /**
- * GitHub Events API를 사용하여 오늘 커밋 개수 조회 (최적화)
- * 한 번의 API 호출로 모든 레포지토리의 커밋 조회
+ * REST API로 레포지토리의 커밋 가져오기
  */
-async function fetchTodayCommitsFromEvents(
+async function fetchCommitsFromRepo(
+  repoFullName: string,
   config: GitHubConfig,
-  selectedRepos: string[] = []
-): Promise<number> {
+  startDate: Date,
+  endDate: Date
+): Promise<Commit[]> {
+  const [owner, repo] = repoFullName.split('/')
+  const url = `${GITHUB_REST_API_ENDPOINT}/repos/${owner}/${repo}/commits`
+  
+  const commits: Commit[] = []
+  let page = 1
+  let hasMore = true
+  
+  while (hasMore && page <= 3) { // 최대 3페이지 (300개 커밋)
+    try {
+      const response = await retryWithBackoff(
+        () => fetch(`${url}?author=${config.username}&since=${startDate.toISOString()}&per_page=100&page=${page}`, {
+          headers: {
+            Authorization: `Bearer ${config.token}`,
+            Accept: 'application/vnd.github.v3+json',
+          },
+        }),
+        {
+          maxRetries: 2,
+          initialDelay: 1000,
+          backoffFactor: 2,
+        }
+      )
+      
+      if (!response.ok) {
+        if (response.status === 403 || response.status === 429) {
+          throw new Error(getRateLimitMessage(null))
+        }
+        break
+      }
+      
+      const repoCommits = await response.json()
+      
+      if (!Array.isArray(repoCommits) || repoCommits.length === 0) {
+        hasMore = false
+        break
+      }
+      
+      // 날짜 필터링
+      const filteredCommits = repoCommits
+        .filter((commit: any) => {
+          const commitDate = new Date(commit.commit.author.date)
+          return commitDate >= startDate && commitDate < endDate
+        })
+        .map((commit: any) => ({
+          message: commit.commit.message,
+          url: commit.html_url,
+          sha: commit.sha.substring(0, 7),
+          date: commit.commit.author.date,
+          repository: repo,
+        }))
+      
+      commits.push(...filteredCommits)
+      
+      // 마지막 커밋이 startDate 이전이면 더 이상 가져올 필요 없음
+      if (repoCommits.length > 0) {
+        const lastCommitDate = new Date(repoCommits[repoCommits.length - 1].commit.author.date)
+        if (lastCommitDate < startDate) {
+          hasMore = false
+        }
+      }
+      
+      page++
+    } catch (error) {
+      break
+    }
+  }
+  
+  return commits
+}
+
+/**
+ * GitHub Events API를 사용하여 커밋 개수 및 목록 조회 (최적화)
+ * 한 번의 API 호출로 모든 레포지토리의 커밋 조회
+ * @param config GitHub 설정
+ * @param selectedRepos 선택된 레포지토리 목록
+ * @param days 최근 며칠간의 커밋을 가져올지 (기본값: 1, 오늘만)
+ */
+async function fetchCommitsFromEvents(
+  config: GitHubConfig,
+  selectedRepos: string[] = [],
+  days: number = 1
+): Promise<{ count: number; commits: Commit[] }> {
   if (!config.username) {
-    return 0
+    return { count: 0, commits: [] }
   }
 
   const now = new Date()
-  const todayUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
-  const todayStart = todayUTC.toISOString()
-  const todayDateStr = todayUTC.toISOString().split('T')[0] // YYYY-MM-DD
+  const startDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
+  startDate.setUTCDate(startDate.getUTCDate() - (days - 1)) // days일 전부터
+  const startDateStr = startDate.toISOString().split('T')[0] // YYYY-MM-DD
+  const endDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
+  endDate.setUTCDate(endDate.getUTCDate() + 1) // 내일 00:00:00까지
+  const endDateStr = endDate.toISOString().split('T')[0] // YYYY-MM-DD
 
   const url = `${GITHUB_REST_API_ENDPOINT}/users/${config.username}/events?per_page=100`
 
@@ -124,31 +214,35 @@ async function fetchTodayCommitsFromEvents(
 
       const events = await response.json()
 
-      // PushEvent만 필터링하고 오늘 날짜 이후의 이벤트만 수집
+      // PushEvent만 필터링하고 시작 날짜 이후의 이벤트만 수집
       const pushEvents = (events as PushEvent[]).filter(
-        (event) => event.type === 'PushEvent' && event.created_at >= todayStart
+        (event) => event.type === 'PushEvent' && event.created_at >= startDate.toISOString()
       )
 
       allPushEvents = allPushEvents.concat(pushEvents)
 
-      // 오늘 날짜를 넘어서면 중단
+      // 시작 날짜 이전으로 넘어가면 중단
       if (events.length > 0) {
         const lastEvent = events[events.length - 1] as PushEvent
-        if (lastEvent && new Date(lastEvent.created_at) < todayUTC) {
+        if (lastEvent && new Date(lastEvent.created_at) < startDate) {
           hasMore = false
+        } else {
+          // Link 헤더 확인
+          const linkHeader = response.headers.get('Link')
+          hasMore = linkHeader?.includes('rel="next"') ?? false
         }
+      } else {
+        hasMore = false
       }
-
-      // Link 헤더 확인
-      const linkHeader = response.headers.get('Link')
-      hasMore = linkHeader?.includes('rel="next"') ?? false
+      
       page++
     }
 
-    // 오늘 날짜로 필터링 및 레포지토리 필터링
-    const todayPushEvents = allPushEvents.filter((event) => {
+    // 날짜 범위로 필터링 및 레포지토리 필터링
+    const filteredPushEvents = allPushEvents.filter((event) => {
       const eventDate = new Date(event.created_at).toISOString().split('T')[0]
-      if (eventDate !== todayDateStr) return false
+      // 시작 날짜부터 종료 날짜 전까지
+      if (eventDate < startDateStr || eventDate >= endDateStr) return false
 
       if (selectedRepos.length > 0) {
         const repoName = event.repo.name.split('/')[1] // owner/repo 형식에서 repo만 추출
@@ -158,15 +252,52 @@ async function fetchTodayCommitsFromEvents(
       return true
     })
 
-    // 각 PushEvent의 payload.size는 해당 push의 커밋 개수
-    // payload.size가 없으면 payload.commits 배열의 길이 사용
-    return todayPushEvents.reduce((sum, event) => {
-      const commitCount = event.payload.size || event.payload.commits?.length || 1
-      return sum + commitCount
+    // 커밋 개수 계산
+    const commitCount = filteredPushEvents.reduce((sum, event) => {
+      const count = event.payload.size || event.payload.commits?.length || 1
+      return sum + count
     }, 0)
+
+    // 커밋 목록 생성
+    const commitPromises = filteredPushEvents.map(async (event) => {
+      const repoName = event.repo.name.split('/')[1] // owner/repo 형식에서 repo만 추출
+      const repoFullName = event.repo.name
+      
+      // payload.commits가 있으면 사용
+      if (event.payload.commits && event.payload.commits.length > 0) {
+        return event.payload.commits.map((commit) => ({
+          message: commit.message,
+          url: `https://github.com/${repoFullName}/commit/${commit.sha}`,
+          sha: commit.sha.substring(0, 7),
+          date: event.created_at,
+          repository: repoName,
+        }))
+      }
+      
+      // payload.commits가 없으면 REST API로 가져오기
+      // payload.size가 있으면 그만큼, 없으면 최소 1개는 있다고 가정
+      const expectedCommits = event.payload.size || 1
+      if (expectedCommits > 0) {
+        const repoCommits = await fetchCommitsFromRepo(repoFullName, config, startDate, endDate)
+        return repoCommits
+      }
+      
+      return []
+    })
+
+    const commitsArrays = await Promise.all(commitPromises)
+    const commits: Commit[] = commitsArrays.flat()
+
+    // 날짜순으로 정렬 (최신순)
+    commits.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+
+    return {
+      count: commitCount,
+      commits: commits.slice(0, days === 1 ? 10 : 20), // 오늘은 10개, 최근 7일은 20개
+    }
   } catch (error) {
-    // Events API 실패 시 0 반환
-    return 0
+    // Events API 실패 시 빈 결과 반환
+    return { count: 0, commits: [] }
   }
 }
 
@@ -370,17 +501,25 @@ export async function fetchGitHubActivity(
       })
     })
 
-    // 오늘 커밋 수 계산
-    // Events API를 사용하여 한 번의 호출로 모든 레포지토리의 오늘 커밋 개수 조회
+    // 오늘 커밋 수 및 목록 계산
+    // Events API를 사용하여 한 번의 호출로 모든 레포지토리의 오늘 커밋 개수 및 목록 조회
     let todayCommits = 0
+    let commits: Commit[] = []
     try {
-      todayCommits = await fetchTodayCommitsFromEvents(config, selectedRepos)
+      // 오늘 커밋 가져오기
+      const todayCommitsResult = await fetchCommitsFromEvents(config, selectedRepos, 1)
+      todayCommits = todayCommitsResult.count
+      
+      // 최근 7일 커밋 목록 가져오기 (오늘 커밋 포함)
+      const weekCommitsResult = await fetchCommitsFromEvents(config, selectedRepos, 7)
+      commits = weekCommitsResult.commits
     } catch (error) {
       // Events API 실패 시 contributionCalendar 사용 (폴백)
       const todayUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
       const todayDateUTC = todayUTC.toISOString().split('T')[0]
       const todayMatch = allDays.find((day) => day.date === todayDateUTC)
       todayCommits = todayMatch?.count || 0
+      commits = [] // 폴백 시 커밋 목록은 비어있음
     }
 
     // PR 목록 변환 (Repository 필터링)
@@ -416,6 +555,7 @@ export async function fetchGitHubActivity(
     const activity: GitHubActivity = {
       todayCommits,
       weekCommits,
+      commits,
       pullRequests,
       issues,
       rateLimit: rateLimitInfo || undefined,

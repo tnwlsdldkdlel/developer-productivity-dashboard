@@ -176,6 +176,41 @@ const GitHubWidget = () => {
             </div>
           </div>
 
+          {/* 커밋 목록 */}
+          {activity.commits.length > 0 && (
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <GitBranch className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
+                  최근 커밋
+                </h3>
+              </div>
+              <div className="space-y-2">
+                {activity.commits.slice(0, 5).map((commit, index) => (
+                  <a
+                    key={index}
+                    href={commit.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="text-sm text-gray-900 dark:text-white flex-1 line-clamp-2 break-words">
+                        {commit.message}
+                      </p>
+                      <span className="text-xs text-gray-500 dark:text-gray-400 font-mono flex-shrink-0 ml-2">
+                        {commit.sha}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      {commit.repository}
+                    </p>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* PR 목록 */}
           {activity.pullRequests.length > 0 && (
             <div>
@@ -259,7 +294,7 @@ const GitHubWidget = () => {
           )}
 
           {/* 빈 상태 */}
-          {activity.pullRequests.length === 0 && activity.issues.length === 0 && (
+          {activity.commits.length === 0 && activity.pullRequests.length === 0 && activity.issues.length === 0 && (
             <div className="text-center py-4 text-gray-500 dark:text-gray-400">
               <p className="text-sm">활동 내역이 없습니다.</p>
             </div>
