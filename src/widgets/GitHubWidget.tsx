@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { GitBranch, GitPullRequest, AlertCircle } from 'lucide-react'
+import toast from 'react-hot-toast'
 import { useDashboardStore } from '../stores/dashboardStore'
 import { fetchGitHubActivity, invalidateGitHubActivityCache, type GitHubActivity } from '../utils/githubApi'
 import Widget from '../components/Widget'
@@ -53,8 +54,10 @@ const GitHubWidget = () => {
 
         if (message.includes('Rate Limit') || message.includes('403') || message.includes('429')) {
           setState('rate-limit')
+          toast.error('GitHub API 요청 한도가 초과되었습니다')
         } else {
           setState('error')
+          toast.error('GitHub 활동 데이터를 불러올 수 없습니다')
         }
       }
     },

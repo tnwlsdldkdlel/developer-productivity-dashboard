@@ -61,6 +61,24 @@ const Modal = ({ isOpen, onClose, title, children }: ModalProps) => {
           // 모달 컨텐츠 클릭 시 이벤트 전파 중지 (배경 클릭으로 인한 닫기 방지)
           e.stopPropagation()
         }}
+        onKeyDown={(e) => {
+          // Tab 키가 모달 밖으로 나가는 것을 방지
+          if (e.key === 'Tab') {
+            const focusableElements = e.currentTarget.querySelectorAll(
+              'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+            )
+            const firstElement = focusableElements[0] as HTMLElement
+            const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement
+
+            if (e.shiftKey && document.activeElement === firstElement) {
+              e.preventDefault()
+              lastElement?.focus()
+            } else if (!e.shiftKey && document.activeElement === lastElement) {
+              e.preventDefault()
+              firstElement?.focus()
+            }
+          }
+        }}
       >
         {/* 헤더 */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">

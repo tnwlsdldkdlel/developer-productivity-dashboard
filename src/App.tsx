@@ -1,5 +1,6 @@
 import { useCallback, useState, useEffect } from 'react'
 import { Responsive, WidthProvider, Layout } from 'react-grid-layout'
+import toast from 'react-hot-toast'
 import 'react-grid-layout/css/styles.css'
 import 'react-resizable/css/styles.css'
 import TodoWidget from './widgets/TodoWidget'
@@ -43,18 +44,24 @@ function App() {
   const handleLayoutChange = useCallback(
     (layout: Layout[]) => {
       updateLayout(currentBreakpoint, layout)
+      toast.success('레이아웃이 저장되었습니다', { duration: 1500 })
     },
     [currentBreakpoint, updateLayout]
   )
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      {/* 스킵 링크 (접근성) */}
+      <a href="#main-content" className="skip-link">
+        메인 콘텐츠로 건너뛰기
+      </a>
       <div className="container mx-auto p-4 max-w-7xl">
         <header className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
             개발자 생산성 대시보드
           </h1>
         </header>
+        <main id="main-content" role="main" aria-label="대시보드 메인 콘텐츠">
 
         <ResponsiveGridLayout
           className="layout"
@@ -92,6 +99,7 @@ function App() {
             </ErrorBoundary>
           </div>
         </ResponsiveGridLayout>
+        </main>
       </div>
     </div>
   )

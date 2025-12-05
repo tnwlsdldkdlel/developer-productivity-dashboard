@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Plus, Trash2 } from 'lucide-react'
+import toast from 'react-hot-toast'
 import { useTodoStore } from '../stores/todoStore'
 import Widget from '../components/Widget'
 
@@ -11,6 +12,7 @@ const TodoWidget = () => {
     if (newTodoText.trim()) {
       addTodo(newTodoText.trim())
       setNewTodoText('')
+      toast.success('할 일이 추가되었습니다')
     }
   }
 
@@ -57,7 +59,13 @@ const TodoWidget = () => {
                 <input
                   type="checkbox"
                   checked={todo.completed}
-                  onChange={() => toggleTodo(todo.id)}
+                  onChange={() => {
+                    const wasCompleted = todo.completed
+                    toggleTodo(todo.id)
+                    if (!wasCompleted) {
+                      toast.success('할 일을 완료했습니다! 🎉')
+                    }
+                  }}
                   className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
                   aria-label={`${todo.text} 완료`}
                 />
