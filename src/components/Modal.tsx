@@ -1,4 +1,5 @@
 import { ReactNode, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 
 interface ModalProps {
@@ -40,9 +41,10 @@ const Modal = ({ isOpen, onClose, title, children }: ModalProps) => {
 
   if (!isOpen) return null
 
-  return (
+  // React Portal을 사용하여 body에 직접 렌더링 (위젯 레이아웃의 영향을 받지 않음)
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
@@ -97,7 +99,8 @@ const Modal = ({ isOpen, onClose, title, children }: ModalProps) => {
         {/* 본문 */}
         <div className="flex-1 overflow-y-auto p-4">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
 

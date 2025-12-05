@@ -1,0 +1,19 @@
+[
+  {
+    "name": "maxNumericValue",
+    "expected": 2000,
+    "actual": 2325,
+    "values": [
+      2325,
+      2325,
+      2325
+    ],
+    "operator": "<=",
+    "passed": false,
+    "auditId": "first-contentful-paint",
+    "level": "error",
+    "url": "http://localhost:4173/",
+    "auditTitle": "First Contentful Paint",
+    "auditDocumentationLink": "https://developer.chrome.com/docs/lighthouse/performance/first-contentful-paint/"
+  }
+]

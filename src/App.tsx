@@ -1,14 +1,19 @@
-import { useCallback, useState, useEffect } from 'react'
+import { useCallback, useState, useEffect, lazy, Suspense } from 'react'
 import { Responsive, WidthProvider, Layout } from 'react-grid-layout'
 import toast from 'react-hot-toast'
 import 'react-grid-layout/css/styles.css'
 import 'react-resizable/css/styles.css'
+import ErrorBoundary from './components/ErrorBoundary'
+import Skeleton from './components/Skeleton'
+import { useDashboardStore } from './stores/dashboardStore'
+
+// 코드 분할: 위젯 지연 로딩
+// 초기 화면에 보이는 위젯은 즉시 로드 (Preload 전략)
 import TodoWidget from './widgets/TodoWidget'
 import GitHubWidget from './widgets/GitHubWidget'
-import TechNewsWidget from './widgets/TechNewsWidget'
-import StackOverflowWidget from './widgets/StackOverflowWidget'
-import ErrorBoundary from './components/ErrorBoundary'
-import { useDashboardStore } from './stores/dashboardStore'
+// 나머지 위젯은 지연 로딩
+const TechNewsWidget = lazy(() => import('./widgets/TechNewsWidget'))
+const StackOverflowWidget = lazy(() => import('./widgets/StackOverflowWidget'))
 
 const ResponsiveGridLayout = WidthProvider(Responsive)
 
@@ -90,12 +95,16 @@ function App() {
           </div>
           <div key="tech-news" className="h-full">
             <ErrorBoundary widgetName="기술 뉴스">
-              <TechNewsWidget />
+              <Suspense fallback={<Skeleton />}>
+                <TechNewsWidget />
+              </Suspense>
             </ErrorBoundary>
           </div>
           <div key="stackoverflow" className="h-full">
             <ErrorBoundary widgetName="Stack Overflow">
-              <StackOverflowWidget />
+              <Suspense fallback={<Skeleton />}>
+                <StackOverflowWidget />
+              </Suspense>
             </ErrorBoundary>
           </div>
         </ResponsiveGridLayout>
