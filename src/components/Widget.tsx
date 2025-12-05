@@ -39,7 +39,7 @@ const Widget = ({ title, children, onSettingsClick, className = '' }: WidgetProp
           </button>
         )}
       </div>
-      <div className="flex-1 overflow-auto" aria-labelledby={`widget-title-${title}`}>
+      <div className="flex-1 overflow-auto">
         {children}
       </div>
     </div>
