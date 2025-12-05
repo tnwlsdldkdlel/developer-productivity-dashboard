@@ -41,7 +41,7 @@ const ColorPicker = ({ value, onChange, label = '배경색' }: ColorPickerProps)
                   : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
               }`}
               style={{
-                backgroundColor: color.value || (window.matchMedia('(prefers-color-scheme: dark)').matches ? color.dark : color.light),
+                backgroundColor: color.value || (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? color.dark : color.light),
               }}
               aria-label={`${color.name} 색상 선택${isSelected ? ' (선택됨)' : ''}`}
               title={color.name}

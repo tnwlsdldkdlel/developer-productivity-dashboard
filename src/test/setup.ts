@@ -1,6 +1,23 @@
 import '@testing-library/jest-dom'
-import { expect, afterEach } from 'vitest'
+import { expect, afterEach, beforeAll } from 'vitest'
 import { cleanup } from '@testing-library/react'
+
+// window.matchMedia 모킹 (테스트 환경에서 사용)
+beforeAll(() => {
+  Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    value: (query: string) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: () => {},
+      removeListener: () => {},
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      dispatchEvent: () => {},
+    }),
+  })
+})
 
 // 각 테스트 후 cleanup
 afterEach(() => {
