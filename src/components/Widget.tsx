@@ -1,3 +1,11 @@
+/**
+ * Widget 컴포넌트
+ * 모든 위젯의 공통 래퍼 컴포넌트
+ * - 헤더 영역 (제목, 설정 아이콘)
+ * - 일관된 스타일링
+ * - 접근성 고려 (ARIA 레이블, 키보드 네비게이션)
+ */
+
 import { ReactNode } from 'react'
 import { Settings } from 'lucide-react'
 
@@ -17,7 +25,7 @@ const Widget = ({ title, children, onSettingsClick, className = '' }: WidgetProp
           <button
             onClick={onSettingsClick}
             className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
-            aria-label="설정"
+            aria-label={`${title} 설정`}
           >
             <Settings className="w-4 h-4 text-gray-600 dark:text-gray-400" />
           </button>

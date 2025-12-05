@@ -138,47 +138,68 @@
 
 ---
 
-## Phase 4: 공통 컴포넌트 추출 및 리팩토링
+## Phase 4: 공통 컴포넌트 추출 및 리팩토링 ✅ (완료)
 
 ### 4.1 공통 패턴 분석
-- [ ] **위젯 공통 패턴 정리**
+- [x] **위젯 공통 패턴 정리**
   - 할 일 위젯과 GitHub 위젯 비교
   - 공통 요소 식별 (헤더, 에러 처리, 로딩 상태 등)
+  - 공통 패턴 문서화 (`docs/common-patterns.md`)
 
 ### 4.2 공통 컴포넌트 개발
-- [ ] **Widget 컴포넌트** (기본 위젯 래퍼)
+- [x] **Widget 컴포넌트** (기본 위젯 래퍼)
   - 헤더 영역 (제목, 설정 아이콘)
   - 일관된 스타일링
-  - 에러 상태 표시
-  - 로딩 상태 (스켈레톤 UI)
+  - 접근성 개선 (ARIA 레이블)
   
-- [ ] **Skeleton 컴포넌트**
+- [x] **Skeleton 컴포넌트**
   - 위젯 로딩 시 플레이스홀더 UI
   - PRD 요구사항: 300ms 이내 로드 표시
 
-- [ ] **ErrorBoundary 컴포넌트**
+- [x] **ErrorBoundary 컴포넌트**
   - 위젯 단위 오류 처리
   - "다시 시도" 버튼 포함
+  - 개발 모드에서 상세 에러 정보 표시
 
-- [ ] **Drawer/Modal 컴포넌트**
+- [x] **Modal 컴포넌트**
   - 위젯 설정 패널용
   - 접근성 고려 (키보드 네비게이션, ARIA 레이블)
+  - ESC 키로 닫기, 배경 클릭으로 닫기
 
 ### 4.3 상태 관리 구조 확장
-- [ ] **Dashboard Store** (Zustand)
+- [x] **Dashboard Store** (Zustand)
   - 레이아웃 정보 관리
   - 위젯 설정 관리 (GitHub, Tech News, Stack Overflow)
   - Local Storage persist 설정
 
 ### 4.4 리팩토링
-- [ ] **기존 위젯에 공통 컴포넌트 적용**
-  - 할 일 위젯 리팩토링
-  - GitHub 위젯 리팩토링
-  - 일관성 확보
+- [x] **기존 위젯에 공통 컴포넌트 적용**
+  - 할 일 위젯: Widget 컴포넌트 사용 확인
+  - GitHub 위젯: Widget, Skeleton, ErrorState, Modal 사용 확인
+  - ErrorBoundary를 App.tsx에 적용하여 위젯 단위 오류 처리
 
-**예상 소요 시간**: 2-3일
+**예상 소요 시간**: 2-3일 (실제 완료: 2025-12-04)
 
 **목표**: 공통 패턴을 컴포넌트로 추출하여 재사용성과 일관성 확보
+
+### 완료된 Phase 4 요약
+- **구현 파일**:
+  - `src/components/ErrorBoundary.tsx` - React Error Boundary 컴포넌트
+  - `src/components/Widget.tsx` - 위젯 래퍼 컴포넌트 (개선)
+  - `docs/common-patterns.md` - 공통 패턴 분석 문서
+- **주요 기능**:
+  - ErrorBoundary로 위젯 단위 JavaScript 에러 처리
+  - 공통 패턴 문서화 (위젯 구조, 상태 관리, 에러 처리, API 통합 등)
+  - 모든 위젯에 ErrorBoundary 적용
+- **발견된 공통 패턴**:
+  1. **위젯 구조 패턴**: Widget 래퍼 → Header + Content 구조
+  2. **상태 관리 패턴**: Zustand + Persist로 Local Storage 저장
+  3. **로딩 상태 패턴**: Skeleton UI로 일관된 로딩 표시
+  4. **에러 처리 패턴**: ErrorState (비즈니스 로직 에러) + ErrorBoundary (JavaScript 에러)
+  5. **설정 관리 패턴**: Modal 컴포넌트로 위젯 설정 UI 통일
+  6. **API 통합 패턴**: GraphQL + REST API 혼용, 재시도 로직, 캐싱
+  7. **접근성 패턴**: ARIA 레이블, 키보드 네비게이션, 포커스 관리
+  8. **불변성 패턴**: 스프레드 연산자로 상태 업데이트
 
 ---
 

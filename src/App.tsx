@@ -1,5 +1,6 @@
 import TodoWidget from './widgets/TodoWidget'
 import GitHubWidget from './widgets/GitHubWidget'
+import ErrorBoundary from './components/ErrorBoundary'
 
 function App() {
   return (
@@ -16,10 +17,14 @@ function App() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <div className="h-96">
-            <GitHubWidget />
+            <ErrorBoundary widgetName="GitHub 활동">
+              <GitHubWidget />
+            </ErrorBoundary>
           </div>
           <div className="h-96">
-            <TodoWidget />
+            <ErrorBoundary widgetName="오늘 할 일">
+              <TodoWidget />
+            </ErrorBoundary>
           </div>
         </div>
       </div>
