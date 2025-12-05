@@ -6,26 +6,30 @@ import Widget from '../components/Widget'
 import Skeleton from '../components/Skeleton'
 import ErrorState from '../components/ErrorState'
 import Modal from '../components/Modal'
+import ColorPicker from '../components/ColorPicker'
 
 type WidgetState = 'idle' | 'loading' | 'success' | 'error'
 
 const TechNewsWidget = () => {
-  const { widgetConfigs, updateTechNewsConfig } = useDashboardStore()
+  const { widgetConfigs, updateTechNewsConfig, widgetBackgroundColors, updateWidgetBackgroundColor } = useDashboardStore()
   const { keywords } = widgetConfigs['tech-news']
+  const backgroundColor = widgetBackgroundColors['tech-news']
 
   const [state, setState] = useState<WidgetState>('idle')
   const [articles, setArticles] = useState<NewsArticle[]>([])
   const [errorMessage, setErrorMessage] = useState<string>('')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [formKeywords, setFormKeywords] = useState('')
+  const [formBackgroundColor, setFormBackgroundColor] = useState<string>(backgroundColor || '')
   const prevKeywordsRef = useRef<string>('')
 
   // 모달이 열릴 때 현재 설정값으로 폼 초기화
   useEffect(() => {
     if (isModalOpen) {
       setFormKeywords(keywords.join(', '))
+      setFormBackgroundColor(backgroundColor || '')
     }
-  }, [isModalOpen, keywords])
+  }, [isModalOpen, keywords, backgroundColor])
 
   const loadNews = useCallback(
     async (skipCache: boolean = false) => {
@@ -66,9 +70,17 @@ const TechNewsWidget = () => {
     setIsModalOpen(true)
   }
 
+  useEffect(() => {
+    if (isModalOpen) {
+      setFormKeywords(keywords.join(', '))
+      setFormBackgroundColor(backgroundColor || '')
+    }
+  }, [isModalOpen, keywords, backgroundColor])
+
   const handleModalClose = () => {
     setIsModalOpen(false)
     setFormKeywords('')
+    setFormBackgroundColor('')
   }
 
   const handleSave = (e?: React.MouseEvent) => {
@@ -80,6 +92,7 @@ const TechNewsWidget = () => {
 
     if (newKeywords.length > 0) {
       updateTechNewsConfig({ keywords: newKeywords })
+      updateWidgetBackgroundColor('tech-news', formBackgroundColor)
       handleModalClose()
     }
   }
@@ -108,7 +121,7 @@ const TechNewsWidget = () => {
 
   return (
     <>
-      <Widget title="기술 뉴스" onSettingsClick={handleSettingsClick}>
+      <Widget title="기술 뉴스" onSettingsClick={handleSettingsClick} backgroundColor={backgroundColor}>
         {state === 'loading' && <Skeleton />}
         {state === 'error' && (
           <ErrorState message={errorMessage} onRetry={() => loadNews(true)} />
@@ -203,6 +216,14 @@ const TechNewsWidget = () => {
             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
               관심 있는 기술 키워드를 쉼표로 구분하여 입력하세요. (예: React, TypeScript)
             </p>
+          </div>
+
+          <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+            <ColorPicker
+              value={formBackgroundColor}
+              onChange={setFormBackgroundColor}
+              label="위젯 배경색"
+            />
           </div>
 
           <div className="flex gap-2 pt-2">

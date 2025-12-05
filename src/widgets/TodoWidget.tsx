@@ -1,12 +1,19 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Plus, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useTodoStore } from '../stores/todoStore'
+import { useDashboardStore } from '../stores/dashboardStore'
 import Widget from '../components/Widget'
+import Modal from '../components/Modal'
+import ColorPicker from '../components/ColorPicker'
 
 const TodoWidget = () => {
   const { todos, addTodo, toggleTodo, deleteTodo } = useTodoStore()
+  const { widgetBackgroundColors, updateWidgetBackgroundColor } = useDashboardStore()
+  const backgroundColor = widgetBackgroundColors['todo']
   const [newTodoText, setNewTodoText] = useState('')
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [formBackgroundColor, setFormBackgroundColor] = useState<string>(backgroundColor || '')
 
   const handleAddTodo = () => {
     if (newTodoText.trim()) {
@@ -22,11 +29,38 @@ const TodoWidget = () => {
     }
   }
 
+  useEffect(() => {
+    if (isModalOpen) {
+      setFormBackgroundColor(backgroundColor || '')
+    }
+  }, [isModalOpen, backgroundColor])
+
+  const handleSettingsClick = () => {
+    setIsModalOpen(true)
+  }
+
+  const handleModalClose = () => {
+    setIsModalOpen(false)
+  }
+
+  const handleSave = (e?: React.MouseEvent) => {
+    e?.stopPropagation()
+    updateWidgetBackgroundColor('todo', formBackgroundColor)
+    toast.success('배경색이 저장되었습니다')
+    handleModalClose()
+  }
+
+  const handleCancel = (e?: React.MouseEvent) => {
+    e?.stopPropagation()
+    handleModalClose()
+  }
+
   const incompleteTodos = todos.filter((todo) => !todo.completed)
   const completedTodos = todos.filter((todo) => todo.completed)
 
   return (
-    <Widget title="오늘 할 일">
+    <>
+      <Widget title="오늘 할 일" onSettingsClick={handleSettingsClick} backgroundColor={backgroundColor}>
       <div className="space-y-3">
         {/* 할 일 추가 입력 */}
         <div className="flex gap-2">
@@ -121,7 +155,36 @@ const TodoWidget = () => {
           </div>
         )}
       </div>
-    </Widget>
+      </Widget>
+
+      {/* 설정 모달 */}
+      <Modal isOpen={isModalOpen} onClose={handleModalClose} title="할 일 위젯 설정">
+        <div className="space-y-4">
+          <ColorPicker
+            value={formBackgroundColor}
+            onChange={setFormBackgroundColor}
+            label="위젯 배경색"
+          />
+
+          <div className="flex gap-2 pt-2">
+            <button
+              onClick={handleSave}
+              className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+              type="button"
+            >
+              저장
+            </button>
+            <button
+              onClick={handleCancel}
+              className="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors"
+              type="button"
+            >
+              취소
+            </button>
+          </div>
+        </div>
+      </Modal>
+    </>
   )
 }
 

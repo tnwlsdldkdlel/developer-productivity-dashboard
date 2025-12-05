@@ -7,12 +7,14 @@ import Widget from '../components/Widget'
 import Skeleton from '../components/Skeleton'
 import ErrorState from '../components/ErrorState'
 import Modal from '../components/Modal'
+import ColorPicker from '../components/ColorPicker'
 
 type WidgetState = 'idle' | 'loading' | 'success' | 'error' | 'rate-limit'
 
 const GitHubWidget = () => {
-  const { widgetConfigs, updateGitHubConfig } = useDashboardStore()
+  const { widgetConfigs, updateGitHubConfig, widgetBackgroundColors, updateWidgetBackgroundColor } = useDashboardStore()
   const { token, username, selectedRepos } = widgetConfigs.github
+  const backgroundColor = widgetBackgroundColors['github']
 
   const [state, setState] = useState<WidgetState>('idle')
   const [activity, setActivity] = useState<GitHubActivity | null>(null)
@@ -20,6 +22,7 @@ const GitHubWidget = () => {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [formToken, setFormToken] = useState('')
   const [formUsername, setFormUsername] = useState('')
+  const [formBackgroundColor, setFormBackgroundColor] = useState<string>(backgroundColor || '')
   const prevConfigRef = useRef<{ token: string; username: string; repos: string }>()
 
   // 모달이 열릴 때 현재 설정값으로 폼 초기화
@@ -27,8 +30,9 @@ const GitHubWidget = () => {
     if (isModalOpen) {
       setFormToken(token || '')
       setFormUsername(username || '')
+      setFormBackgroundColor(backgroundColor || '')
     }
-  }, [isModalOpen, token, username])
+  }, [isModalOpen, token, username, backgroundColor])
 
   const loadActivity = useCallback(
     async (skipCache: boolean = false) => {
@@ -117,6 +121,9 @@ const GitHubWidget = () => {
         username: newUsername,
       })
       
+      // 배경색 저장
+      updateWidgetBackgroundColor('github', formBackgroundColor)
+      
       // 캐시 무효화 (설정 변경 전의 캐시 삭제)
       invalidateGitHubActivityCache(username, selectedRepos)
       
@@ -134,9 +141,33 @@ const GitHubWidget = () => {
 
   const isConfigured = token && username
 
+  // 최근 업데이트 시간 포맷팅
+  const formatLastUpdated = (lastUpdated?: string) => {
+    if (!lastUpdated) return undefined
+    
+    const date = new Date(lastUpdated)
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffMins = Math.floor(diffMs / (1000 * 60))
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+
+    if (diffMins < 1) return '방금 전'
+    if (diffMins < 60) return `${diffMins}분 전`
+    if (diffHours < 24) return `${diffHours}시간 전`
+    if (diffDays === 1) return '어제'
+    if (diffDays < 7) return `${diffDays}일 전`
+    return date.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })
+  }
+
   return (
     <>
-      <Widget title="GitHub 활동" onSettingsClick={handleSettingsClick}>
+      <Widget 
+        title="GitHub 활동" 
+        onSettingsClick={handleSettingsClick} 
+        backgroundColor={backgroundColor}
+        subtitle={activity?.lastUpdated ? `(${formatLastUpdated(activity.lastUpdated)})` : undefined}
+      >
       {!isConfigured ? (
         <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
           <GitBranch className="w-12 h-12 text-gray-400 dark:text-gray-500 mb-4" />
@@ -188,17 +219,17 @@ const GitHubWidget = () => {
                   최근 커밋
                 </h3>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {activity.commits.slice(0, 5).map((commit, index) => (
                   <a
                     key={index}
                     href={commit.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                    className="block p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group"
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <p className="text-sm text-gray-900 dark:text-white flex-1 line-clamp-2 break-words">
+                      <p className="text-sm text-gray-900 dark:text-white flex-1 line-clamp-2 break-words group-hover:text-blue-600 dark:group-hover:text-blue-400">
                         {commit.message}
                       </p>
                       <span className="text-xs text-gray-500 dark:text-gray-400 font-mono flex-shrink-0 ml-2">
@@ -223,17 +254,17 @@ const GitHubWidget = () => {
                   Pull Requests
                 </h3>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {activity.pullRequests.slice(0, 5).map((pr, index) => (
                   <a
                     key={index}
                     href={pr.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                    className="block p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group"
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <p className="text-sm text-gray-900 dark:text-white flex-1 truncate">
+                      <p className="text-sm text-gray-900 dark:text-white flex-1 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400">
                         {pr.title}
                       </p>
                       <span
@@ -264,17 +295,17 @@ const GitHubWidget = () => {
                 <AlertCircle className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                 <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Issues</h3>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {activity.issues.slice(0, 5).map((issue, index) => (
                   <a
                     key={index}
                     href={issue.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                    className="block p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group"
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <p className="text-sm text-gray-900 dark:text-white flex-1 truncate">
+                      <p className="text-sm text-gray-900 dark:text-white flex-1 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400">
                         {issue.title}
                       </p>
                       <span
@@ -353,6 +384,14 @@ const GitHubWidget = () => {
               placeholder="octocat"
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
               aria-label="GitHub 사용자명"
+            />
+          </div>
+
+          <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+            <ColorPicker
+              value={formBackgroundColor}
+              onChange={setFormBackgroundColor}
+              label="위젯 배경색"
             />
           </div>
 

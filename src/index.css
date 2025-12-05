@@ -36,6 +36,47 @@ body {
   top: 0;
 }
 
+/* 위젯 자동 대비 조절 스타일 */
+.widget-auto-contrast[style*="--widget-text-color"] .widget-content,
+.widget-auto-contrast[style*="--widget-text-color"] .widget-content * {
+  /* children 영역의 모든 텍스트 요소에 색상 적용 */
+  color: var(--widget-text-color, inherit) !important;
+}
+
+/* 명시적으로 색상이 지정된 텍스트 요소들도 배경색에 따라 조절 */
+.widget-auto-contrast[style*="--widget-text-color"] p,
+.widget-auto-contrast[style*="--widget-text-color"] span:not([class*="bg-"]):not([class*="text-white"]):not([class*="text-black"]),
+.widget-auto-contrast[style*="--widget-text-color"] div:not([class*="bg-"]):not([class*="text-white"]):not([class*="text-black"]),
+.widget-auto-contrast[style*="--widget-text-color"] h1,
+.widget-auto-contrast[style*="--widget-text-color"] h2,
+.widget-auto-contrast[style*="--widget-text-color"] h3,
+.widget-auto-contrast[style*="--widget-text-color"] h4,
+.widget-auto-contrast[style*="--widget-text-color"] h5,
+.widget-auto-contrast[style*="--widget-text-color"] h6,
+.widget-auto-contrast[style*="--widget-text-color"] a:not([class*="bg-"]):not([class*="text-white"]):not([class*="text-black"]) {
+  /* 배경색이 있을 때만 색상 적용 */
+  color: var(--widget-text-color, inherit) !important;
+}
+
+/* 링크는 약간 다른 색상으로 표시 (가독성 향상) */
+.widget-auto-contrast[style*="--widget-text-color"] a:not([class*="bg-"]):not([class*="text-white"]):not([class*="text-black"]) {
+  opacity: 0.9;
+  text-decoration: underline;
+}
+
+.widget-auto-contrast[style*="--widget-text-color"] a:not([class*="bg-"]):not([class*="text-white"]):not([class*="text-black"]):hover {
+  opacity: 1;
+}
+
+/* 입력 필드와 버튼은 제외 (명시적 스타일 유지) */
+.widget-auto-contrast[style*="--widget-text-color"] input,
+.widget-auto-contrast[style*="--widget-text-color"] button,
+.widget-auto-contrast[style*="--widget-text-color"] [class*="bg-"],
+.widget-auto-contrast[style*="--widget-text-color"] [class*="text-white"],
+.widget-auto-contrast[style*="--widget-text-color"] [class*="text-black"] {
+  color: inherit !important;
+}
+
 /* react-grid-layout 스타일 커스터마이징 */
 .react-grid-layout {
   position: relative;
@@ -97,5 +138,46 @@ body {
 /* 다크 모드 지원 */
 .dark .react-grid-item.react-grid-placeholder {
   background: rgb(96, 165, 250);
+}
+
+/* 위젯 자동 대비 조절 스타일 */
+.widget-auto-contrast[style*="--widget-text-color"] .widget-content,
+.widget-auto-contrast[style*="--widget-text-color"] .widget-content * {
+  /* children 영역의 모든 텍스트 요소에 색상 적용 */
+  color: var(--widget-text-color, inherit) !important;
+}
+
+/* 명시적으로 색상이 지정된 텍스트 요소들도 배경색에 따라 조절 */
+.widget-auto-contrast[style*="--widget-text-color"] p,
+.widget-auto-contrast[style*="--widget-text-color"] span:not([class*="bg-"]):not([class*="text-white"]):not([class*="text-black"]),
+.widget-auto-contrast[style*="--widget-text-color"] div:not([class*="bg-"]):not([class*="text-white"]):not([class*="text-black"]),
+.widget-auto-contrast[style*="--widget-text-color"] h1,
+.widget-auto-contrast[style*="--widget-text-color"] h2,
+.widget-auto-contrast[style*="--widget-text-color"] h3,
+.widget-auto-contrast[style*="--widget-text-color"] h4,
+.widget-auto-contrast[style*="--widget-text-color"] h5,
+.widget-auto-contrast[style*="--widget-text-color"] h6,
+.widget-auto-contrast[style*="--widget-text-color"] a:not([class*="bg-"]):not([class*="text-white"]):not([class*="text-black"]) {
+  /* 배경색이 있을 때만 색상 적용 */
+  color: var(--widget-text-color, inherit) !important;
+}
+
+/* 링크는 약간 다른 색상으로 표시 (가독성 향상) */
+.widget-auto-contrast[style*="--widget-text-color"] a:not([class*="bg-"]):not([class*="text-white"]):not([class*="text-black"]) {
+  opacity: 0.9;
+  text-decoration: underline;
+}
+
+.widget-auto-contrast[style*="--widget-text-color"] a:not([class*="bg-"]):not([class*="text-white"]):not([class*="text-black"]):hover {
+  opacity: 1;
+}
+
+/* 입력 필드와 버튼은 제외 (명시적 스타일 유지) */
+.widget-auto-contrast[style*="--widget-text-color"] input,
+.widget-auto-contrast[style*="--widget-text-color"] button,
+.widget-auto-contrast[style*="--widget-text-color"] [class*="bg-"],
+.widget-auto-contrast[style*="--widget-text-color"] [class*="text-white"],
+.widget-auto-contrast[style*="--widget-text-color"] [class*="text-black"] {
+  color: inherit !important;
 }
 

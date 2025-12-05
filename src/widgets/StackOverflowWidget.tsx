@@ -10,12 +10,14 @@ import Widget from '../components/Widget'
 import Skeleton from '../components/Skeleton'
 import ErrorState from '../components/ErrorState'
 import Modal from '../components/Modal'
+import ColorPicker from '../components/ColorPicker'
 
 type WidgetState = 'idle' | 'loading' | 'success' | 'error'
 
 const StackOverflowWidget = () => {
-  const { widgetConfigs, updateStackOverflowConfig } = useDashboardStore()
+  const { widgetConfigs, updateStackOverflowConfig, widgetBackgroundColors, updateWidgetBackgroundColor } = useDashboardStore()
   const { tags, apiKey } = widgetConfigs.stackoverflow
+  const backgroundColor = widgetBackgroundColors['stackoverflow']
 
   const [state, setState] = useState<WidgetState>('idle')
   const [questions, setQuestions] = useState<StackOverflowQuestion[]>([])
@@ -23,6 +25,7 @@ const StackOverflowWidget = () => {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [formTags, setFormTags] = useState('')
   const [formApiKey, setFormApiKey] = useState('')
+  const [formBackgroundColor, setFormBackgroundColor] = useState<string>(backgroundColor || '')
   const prevConfigRef = useRef<{ tags: string; apiKey: string }>()
 
   // 모달이 열릴 때 현재 설정값으로 폼 초기화
@@ -30,8 +33,9 @@ const StackOverflowWidget = () => {
     if (isModalOpen) {
       setFormTags(tags.join(', '))
       setFormApiKey(apiKey || '')
+      setFormBackgroundColor(backgroundColor || '')
     }
-  }, [isModalOpen, tags, apiKey])
+  }, [isModalOpen, tags, apiKey, backgroundColor])
 
   const loadQuestions = useCallback(
     async (skipCache: boolean = false) => {
@@ -75,10 +79,19 @@ const StackOverflowWidget = () => {
     setIsModalOpen(true)
   }
 
+  useEffect(() => {
+    if (isModalOpen) {
+      setFormTags(tags.join(', '))
+      setFormApiKey(apiKey || '')
+      setFormBackgroundColor(backgroundColor || '')
+    }
+  }, [isModalOpen, tags, apiKey, backgroundColor])
+
   const handleModalClose = () => {
     setIsModalOpen(false)
     setFormTags('')
     setFormApiKey('')
+    setFormBackgroundColor('')
   }
 
   const handleSave = (e?: React.MouseEvent) => {
@@ -93,6 +106,7 @@ const StackOverflowWidget = () => {
         tags: newTags,
         apiKey: formApiKey.trim() || undefined,
       })
+      updateWidgetBackgroundColor('stackoverflow', formBackgroundColor)
       handleModalClose()
     }
   }
@@ -121,7 +135,7 @@ const StackOverflowWidget = () => {
 
   return (
     <>
-      <Widget title="Stack Overflow" onSettingsClick={handleSettingsClick}>
+      <Widget title="Stack Overflow" onSettingsClick={handleSettingsClick} backgroundColor={backgroundColor}>
         {state === 'loading' && <Skeleton />}
         {state === 'error' && (
           <ErrorState message={errorMessage} onRetry={() => loadQuestions(true)} />
@@ -243,6 +257,14 @@ const StackOverflowWidget = () => {
             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
               API 키를 입력하면 더 높은 Rate Limit을 사용할 수 있습니다. (선택사항)
             </p>
+          </div>
+
+          <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+            <ColorPicker
+              value={formBackgroundColor}
+              onChange={setFormBackgroundColor}
+              label="위젯 배경색"
+            />
           </div>
 
           <div className="flex gap-2 pt-2">

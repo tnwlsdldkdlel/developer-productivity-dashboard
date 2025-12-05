@@ -1,10 +1,10 @@
 import { useCallback, useState, useEffect, lazy, Suspense } from 'react'
 import { Responsive, WidthProvider, Layout } from 'react-grid-layout'
-import toast from 'react-hot-toast'
 import 'react-grid-layout/css/styles.css'
 import 'react-resizable/css/styles.css'
 import ErrorBoundary from './components/ErrorBoundary'
 import Skeleton from './components/Skeleton'
+import LayoutManager from './components/LayoutManager'
 import { useDashboardStore } from './stores/dashboardStore'
 
 // 코드 분할: 위젯 지연 로딩
@@ -49,7 +49,7 @@ function App() {
   const handleLayoutChange = useCallback(
     (layout: Layout[]) => {
       updateLayout(currentBreakpoint, layout)
-      toast.success('레이아웃이 저장되었습니다', { duration: 1500 })
+      // 토스트는 updateLayout 내부에서 자동 저장되므로 제거 (너무 자주 표시됨)
     },
     [currentBreakpoint, updateLayout]
   )
@@ -61,10 +61,11 @@ function App() {
         메인 콘텐츠로 건너뛰기
       </a>
       <div className="container mx-auto p-4 max-w-7xl">
-        <header className="mb-6">
+        <header className="mb-6 flex items-center justify-between">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
             개발자 생산성 대시보드
           </h1>
+          <LayoutManager />
         </header>
         <main id="main-content" role="main" aria-label="대시보드 메인 콘텐츠">
 

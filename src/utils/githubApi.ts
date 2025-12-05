@@ -41,6 +41,7 @@ export interface GitHubActivity {
   commits: Commit[]
   pullRequests: PullRequest[]
   issues: Issue[]
+  lastUpdated?: string // ISO 8601 형식의 업데이트 시간
   rateLimit?: {
     remaining: number
     reset: number
@@ -575,6 +576,7 @@ export async function fetchGitHubActivity(
       commits,
       pullRequests,
       issues,
+      lastUpdated: new Date().toISOString(),
       rateLimit: rateLimitInfo || undefined,
     }
 
