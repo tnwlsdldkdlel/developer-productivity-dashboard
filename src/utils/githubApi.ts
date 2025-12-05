@@ -263,12 +263,6 @@ async function fetchCommitsFromEvents(
       return true
     })
 
-    // 커밋 개수 계산
-    const commitCount = filteredPushEvents.reduce((sum, event) => {
-      const count = event.payload.size || event.payload.commits?.length || 1
-      return sum + count
-    }, 0)
-
     // 커밋 목록 생성
     const commitPromises = filteredPushEvents.map(async (event) => {
       const repoName = event.repo.name.split('/')[1] // owner/repo 형식에서 repo만 추출
@@ -299,12 +293,24 @@ async function fetchCommitsFromEvents(
     const commitsArrays = await Promise.all(commitPromises)
     const commits: Commit[] = commitsArrays.flat()
 
+    // SHA를 기준으로 중복 제거 (같은 커밋이 여러 이벤트에서 중복으로 가져와질 수 있음)
+    const uniqueCommits = commits.reduce((acc, commit) => {
+      const existingCommit = acc.find((c) => c.sha === commit.sha)
+      if (!existingCommit) {
+        acc.push(commit)
+      }
+      return acc
+    }, [] as Commit[])
+
     // 날짜순으로 정렬 (최신순)
-    commits.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    uniqueCommits.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+
+    // 중복 제거 후 실제 커밋 개수로 업데이트 (더 정확한 개수)
+    const actualCommitCount = uniqueCommits.length
 
     return {
-      count: commitCount,
-      commits: commits.slice(0, days === 1 ? 10 : 20), // 오늘은 10개, 최근 7일은 20개
+      count: actualCommitCount,
+      commits: uniqueCommits.slice(0, days === 1 ? 10 : 20), // 오늘은 10개, 최근 7일은 20개
     }
   } catch (error) {
     // Events API 실패 시 빈 결과 반환
