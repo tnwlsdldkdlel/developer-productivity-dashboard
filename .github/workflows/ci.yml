@@ -7,9 +7,9 @@ on:
     branches: [ main, develop ]
 
 jobs:
-  lint-and-build:
+  lint:
+    name: CI - 코드 체크 및 빌드 / lint
     runs-on: ubuntu-latest
-    name: CI - 코드 체크 및 빌드
 
     strategy:
       matrix:
@@ -29,19 +29,59 @@ jobs:
         run: npm ci
 
       - name: 린트 및 타입 체크
-        id: lint
         run: |
           npm run lint
           npx tsc --noEmit
 
+  test:
+    name: CI - 코드 체크 및 빌드 / test
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Node.js ${{ matrix.node-version }} 설정
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: 의존성 설치
+        run: npm ci
+
       - name: 테스트
-        id: test
         run: |
           npm run test
           npm run test -- src/test/accessibility.test.tsx
 
+  build:
+    name: CI - 코드 체크 및 빌드 / build
+    runs-on: ubuntu-latest
+    needs: [lint, test]
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Node.js ${{ matrix.node-version }} 설정
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: 의존성 설치
+        run: npm ci
+
       - name: 빌드 테스트
-        id: build
         run: npm run build
 
       - name: 빌드 아티팩트 업로드
@@ -53,7 +93,7 @@ jobs:
 
   lighthouse:
     runs-on: ubuntu-latest
-    needs: lint-and-build
+    needs: build
     if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
 
     steps:
