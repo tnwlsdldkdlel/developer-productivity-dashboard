@@ -9,6 +9,7 @@ on:
 jobs:
   lint-and-build:
     runs-on: ubuntu-latest
+    name: CI - 코드 체크 및 빌드
 
     strategy:
       matrix:
@@ -27,19 +28,20 @@ jobs:
       - name: 의존성 설치
         run: npm ci
 
-      - name: ESLint 실행
-        run: npm run lint
+      - name: 린트 및 타입 체크
+        id: lint
+        run: |
+          npm run lint
+          npx tsc --noEmit
 
-      - name: TypeScript 타입 체크
-        run: npx tsc --noEmit
+      - name: 테스트
+        id: test
+        run: |
+          npm run test
+          npm run test -- src/test/accessibility.test.tsx
 
-      - name: 단위 테스트 실행
-        run: npm run test
-
-      - name: 접근성 테스트 실행
-        run: npm run test -- src/test/accessibility.test.tsx
-
-      - name: 프로젝트 빌드
+      - name: 빌드 테스트
+        id: build
         run: npm run build
 
       - name: 빌드 아티팩트 업로드
